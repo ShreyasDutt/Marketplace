@@ -1,8 +1,10 @@
 import express from 'express';
-import router from './routes/Routes.js'
+import Authrouter from './routes/AuthRoutes.js'
 import cors from 'cors';
 import dotenv from 'dotenv'
 import cookieParser from "cookie-parser";
+import DBconnect from "./db/MongoDBconnection.js";
+
 
 dotenv.config();
 const app = express();
@@ -13,8 +15,19 @@ app.use(cors({credentials: true}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(router);
+app.use('api/auth',Authrouter);
 
-app.listen(process.env.PORT || 3000,()=>{
-    console.log(`Server started at http://localhost:${process.env.PORT}`);
+
+app.get("/",(req,res)=>{
+    res.json({message:"Hello World"})
+})
+
+app.listen(process.env.PORT || 4000, async ()=>{
+    try{
+        await DBconnect();
+        console.log("Server started on port: " + process.env.PORT);
+    }
+    catch(err){
+        console.log(err.message);
+    }
 });

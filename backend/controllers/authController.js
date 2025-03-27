@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import UserModel from '../models/userModel.js';
+import transporter from '../db/nodemailer.js'
+
 
 export const register = async (req, res) => {
     const { username, email, password } = req.body;
@@ -27,6 +29,18 @@ export const register = async (req, res) => {
         const token = jwt.sign({ id: CreatedUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
         res.cookie('JWTtoken', token);
+
+        //NODE MAILER - welcome email
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: CreatedUser.email,
+            subject:`✨ You’re In! Welcome ${CreatedUser.username} to UFV Marketplace! 🎊`,
+            text: `Your account has been successfully registered on UFV Marketplace! 🎊
+                📧 Email ID: ${CreatedUser.email},
+                Start buying, selling, and exploring great deals now!`
+        }
+
+        await transporter.sendMail(mailOptions);
 
         return res.json({ success: true, message: "User Registered" });
 

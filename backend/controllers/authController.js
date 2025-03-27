@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 import UserModel from '../models/userModel.js';
 
 export const register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (!username || !email || !password) {
         return res.status(400).json({ success: false, message: "Please enter all fields" });
     }
 
@@ -19,14 +19,14 @@ export const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const CreatedUser = await UserModel.create({
-            name,
+            username,
             email,
             password: hashedPassword,
         });
 
         const token = jwt.sign({ id: CreatedUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
-        res.cookie('JWTtoken', token, { maxAge: 7 * 24 * 60 * 60 * 1000});
+        res.cookie('JWTtoken', token);
 
         return res.json({ success: true, message: "User Registered" });
 
@@ -45,7 +45,7 @@ export const login = async (req, res) => {
     }
 
     try {
-        const FoundUser = await userModel.findOne({ email });
+        const FoundUser = await UserModel.findOne({ email });
         if (!FoundUser) {
             return res.status(400).json({ success: false, message: "Email or Password is incorrect" });
         }
@@ -57,7 +57,7 @@ export const login = async (req, res) => {
 
         const token = jwt.sign({ id: FoundUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
-        res.cookie('JWTtoken', token, { maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('JWTtoken', token);
 
         return res.json({ success: true, message: "Login successful" });
 
@@ -68,7 +68,7 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try{
-        res.clearCookie('JWTtoken',{ maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.clearCookie('JWTtoken');
         return res.status(200).json({ success: true, message: "Logout successful" });
     }
     catch(err){
